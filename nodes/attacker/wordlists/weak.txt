@@ -1,0 +1,6 @@
+password
+123456
+admin123
+victim123
+lab
+root

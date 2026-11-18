@@ -1,0 +1,90 @@
+name: network-ad
+
+mgmt:
+  network: mgmt-network-ad
+  ipv4-subnet: 172.30.50.0/24
+
+topology:
+  nodes:
+    target:
+      kind: linux
+      image: network-ad/target:latest
+      mgmt-ipv4: 172.30.50.10
+      env:
+        LAB_IP: 10.30.50.10
+        LAB_IF: eth1
+        LAB_PREFIX: "24"
+      cap-add: [NET_ADMIN, NET_RAW]
+      binds:
+        - nodes/common/configs:/common:ro
+        - nodes/target/configs:/configs:ro
+        - captures:/captures
+      cmd: bash /common/supervise.sh bash /configs/target.sh
+
+    victim:
+      kind: linux
+      image: network-ad/victim:latest
+      mgmt-ipv4: 172.30.50.21
+      env:
+        LAB_IP: 10.30.50.21
+        LAB_IF: eth1
+        LAB_PREFIX: "24"
+      cap-add: [NET_ADMIN, NET_RAW]
+      binds:
+        - nodes/common/configs:/common:ro
+        - nodes/victim/configs:/configs:ro
+      cmd: bash /common/supervise.sh bash /configs/victim.sh
+
+    dns:
+      kind: linux
+      image: network-ad/dns:latest
+      mgmt-ipv4: 172.30.50.53
+      env:
+        LAB_IP: 10.30.50.53
+        LAB_IF: eth1
+        LAB_PREFIX: "24"
+      cap-add: [NET_ADMIN, NET_RAW]
+      binds:
+        - nodes/common/configs:/common:ro
+        - nodes/dns/configs:/configs:ro
+      cmd: bash /common/supervise.sh bash /configs/dns.sh
+
+    gateway:
+      kind: linux
+      image: network-ad/gateway:latest
+      mgmt-ipv4: 172.30.50.254
+      env:
+        LAB_IP: 10.30.50.254
+        LAB_IF: eth1
+        LAB_PREFIX: "24"
+        LAB_SKIP_IP: "1"
+      cap-add: [NET_ADMIN, NET_RAW]
+      sysctls:
+        net.ipv4.ip_forward: "1"
+      binds:
+        - nodes/common/configs:/common:ro
+        - nodes/gateway/configs:/configs:ro
+      cmd: bash /common/supervise.sh bash /configs/gateway.sh
+
+    attacker:
+      kind: linux
+      image: network-ad/attacker:latest
+      mgmt-ipv4: 172.30.50.99
+      env:
+        LAB_IP: 10.30.50.99
+        LAB_IF: eth1
+        LAB_PREFIX: "24"
+      cap-add: [NET_ADMIN, NET_RAW]
+      binds:
+        - nodes/common/configs:/common:ro
+        - nodes/attacker/configs:/configs:ro
+        - captures:/captures
+        - nodes/attacker/tools:/opt/tools:ro
+        - nodes/attacker/wordlists:/opt/wordlists:ro
+      cmd: bash /common/supervise.sh bash /configs/attacker.sh
+
+  links:
+    - endpoints: ["target:eth1", "gateway:eth1"]
+    - endpoints: ["victim:eth1", "gateway:eth2"]
+    - endpoints: ["dns:eth1", "gateway:eth3"]
+    - endpoints: ["attacker:eth1", "gateway:eth4"]
