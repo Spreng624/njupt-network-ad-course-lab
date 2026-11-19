@@ -50,9 +50,6 @@ bash setup/preflight.sh
 ## 快速开始
 
 ```bash
-# 进入实验目录
-cd network-ad
-
 # 首次使用或需要重建时构建五个节点镜像
 bash scripts/build-images.sh
 
@@ -115,8 +112,7 @@ nmap -O -Pn --osscan-guess --max-os-tries 2 10.30.50.10
 抓取受害者流量：
 
 ```bash
-# 回到 WSL 主机的实验目录；如需先退出攻击机，请先输入 exit
-cd network-ad
+# 回到 WSL 主机的 network-ad 仓库根目录；如需先退出攻击机，请先输入 exit
 
 # 抓取 90 秒流量；脚本会暂时启用 ARP 中间人，以捕获 victim 的单播业务流量
 bash scripts/capture.sh network 90
